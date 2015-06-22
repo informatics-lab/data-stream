@@ -1,0 +1,22 @@
+# Cloud fraction 70 levels
+START REQUEST
+coverage_id=sdf
+components=sda
+format=ff
+elevation=
+bbox=gfd
+time=ds
+width=fg
+height=hj
+interpolation=gt
+END REQUEST
+
+START REQUEST
+coverage_id=sdk
+components=66
+format=43
+elevation=43
+bbox=23
+time=23
+width=23
+END REQUEST
