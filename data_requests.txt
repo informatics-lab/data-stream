@@ -1,9 +1,9 @@
 # Cloud fraction 70 levels
 START REQUEST
-coverage_id=UKPPBEST_Latest_CloudBase
-components=Cloud_base
+coverage_id=UKPPBEST_Latest_AGL
+components=Wind_Speed
 format=NetCDF3
-elevation=0-300m
+elevation=10
 bbox=-14.0, 47.5, 7.0, 61.0
-time=2015-06-22T09:00:00Z
+time=2015-06-22T12:00:00Z
 END REQUEST

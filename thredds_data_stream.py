@@ -1,15 +1,10 @@
 """
 Pull data from Met Office Beta Data Services and push to thredds repository.
 
-
-import from list of required coverages, through warning if not found
-save local for testing
-
-
-
 """
 from betadataservices import WCS2Requester
 import iris
+import os
 
 valid_req_params = ["coverage_id", "components", "format", "elevation", "bbox",
                     "time", "width", "height", "interpolation"]
@@ -58,6 +53,47 @@ def read_requests():
                             request_dict[req_params[0]] = req_params[1]
     return requests
 
+def get_tmp_filename(id):
+    return "_tmp_res_data_%s.nc" % id
+
+def get_cubes(response, id):
+    """
+    To load data into cube, currently it must be temperarily saved to file and
+    loaded back in. The id used to create a unique filename when parallel
+    processing.
+
+    """
+    tmp_filename = get_tmp_filename(id)
+    with open(tmp_filename, "w") as outfile:
+        outfile.write(response.content)
+    cubes = iris.load(tmp_filename)
+    return cubes
+
+def remove_tmp_file(id):
+    """
+
+    """
+    tmp_filename = get_tmp_filename(id)
+    os.remove(tmp_filename)
+
+def send_to_thredds():
+    """
+    Need Tom.
+
+    """
+    pass
+
+def sort_response(response, id):
+    """
+    Do any convertions / manipulations here (use Iris).
+
+    """
+    cubes = get_cubes(response, id)
+    print cubes
+    # Do stuff.
+
+    remove_tmp_file(id)
+
 def main():
     """
 
@@ -67,10 +103,10 @@ def main():
 
     requests = read_requests()
 
-    for request_dict in requests:
+    for i, request_dict in enumerate(requests):
         response = req.getCoverage(**request_dict)
-        with open("test.nc", "w") as outfile:
-            outfile.write(response.content)
+
+        sort_response(response, id)
 
 
 if __name__ == "__main__":
