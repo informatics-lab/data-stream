@@ -3,11 +3,39 @@ Pull data from Met Office Beta Data Services and push to thredds repository.
 
 """
 from betadataservices import WCS2Requester
-import iris
-import os
+from paramiko.client import SSHClient
 
 valid_req_params = ["coverage_id", "components", "format", "elevation", "bbox",
                     "time", "width", "height", "interpolation"]
+
+
+##################### Functions for convertion if needed #####################
+import iris
+import os
+
+def get_tmp_filename(id):
+    return "_tmp_res_data_%s.nc" % id
+
+def remove_tmp_file(id):
+    """
+
+    """
+    tmp_filename = get_tmp_filename(id)
+    os.remove(tmp_filename)
+
+def get_cubes(response, id):
+    """
+    To load data into cube, currently it must be temperarily saved to file and
+    loaded back in. The id used to create a unique filename when parallel
+    processing.
+
+    """
+    tmp_filename = get_tmp_filename(id)
+    with open(tmp_filename, "w") as outfile:
+        outfile.write(response.content)
+    cubes = iris.load(tmp_filename)
+    return cubes
+##############################################################################
 
 def read_requests():
     """
@@ -53,46 +81,23 @@ def read_requests():
                             request_dict[req_params[0]] = req_params[1]
     return requests
 
-def get_tmp_filename(id):
-    return "_tmp_res_data_%s.nc" % id
-
-def get_cubes(response, id):
-    """
-    To load data into cube, currently it must be temperarily saved to file and
-    loaded back in. The id used to create a unique filename when parallel
-    processing.
-
-    """
-    tmp_filename = get_tmp_filename(id)
-    with open(tmp_filename, "w") as outfile:
-        outfile.write(response.content)
-    cubes = iris.load(tmp_filename)
-    return cubes
-
-def remove_tmp_file(id):
-    """
-
-    """
-    tmp_filename = get_tmp_filename(id)
-    os.remove(tmp_filename)
-
-def send_to_thredds():
-    """
-    Need Tom.
-
-    """
-    pass
-
-def sort_response(response, id):
+def to_thredds(data, filename,
+               thredds="ec2-52-16-245-62.eu-west-1.compute.amazonaws.com",
+               username="ec2-user",
+               data_dir="/var/lib/tomcat/content/thredds/public/lab_data/"):
     """
     Do any convertions / manipulations here (use Iris).
+    What is directory structure for thredds?
 
     """
-    cubes = get_cubes(response, id)
-    print cubes
-    # Do stuff.
-
-    remove_tmp_file(id)
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(thredds, username=username)
+    sftp = ssh.open_sftp()
+    outfile = sftp.open(data_dir + filename, 'w')
+    outfile.write(data)
+    outfile.close()
+    ssh.close()
 
 def main():
     """
@@ -104,10 +109,8 @@ def main():
     requests = read_requests()
 
     for i, request_dict in enumerate(requests):
-        response = req.getCoverage(**request_dict)
-
-        sort_response(response, id)
-
+        response = req.getCoverage(stream=True, **request_dict)
+        to_thredds(response.content, "pytest.nc")
 
 if __name__ == "__main__":
     main()
