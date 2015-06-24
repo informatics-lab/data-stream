@@ -1,6 +1,11 @@
 """
 Pull data from Met Office Beta Data Services and push to thredds repository.
 
+Issues:
+What is directory structure for thredds?
+WCS2 requests require the date to be given (WCS1 automates to the latest), how
+to handle this. Does WCS1 do 3D data?
+
 """
 from betadataservices import WCS2Requester
 from paramiko.client import SSHClient
@@ -86,8 +91,7 @@ def to_thredds(data, filename,
                username="ec2-user",
                data_dir="/var/lib/tomcat/content/thredds/public/lab_data/"):
     """
-    Do any convertions / manipulations here (use Iris).
-    What is directory structure for thredds?
+    Put data in thredds directory.
 
     """
     ssh = SSHClient()
