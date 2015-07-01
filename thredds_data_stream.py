@@ -10,8 +10,9 @@ to handle this. Does WCS1 do 3D data?
 from betadataservices import WCS2Requester
 from paramiko.client import SSHClient
 
-valid_req_params = ["coverage_id", "components", "format", "elevation", "bbox",
-                    "time", "width", "height", "interpolation"]
+valid_req_params = ["model_feed", "coverage_id", "components", "format",
+                    "elevation", "bbox", "time", "width", "height",
+                    "interpolation"]
 
 
 ##################### Functions for convertion if needed #####################
@@ -48,7 +49,7 @@ def read_requests():
     dictionaries.
 
     """
-    requests = []
+    requests = {}
     request_dict = None
 
     with open("data_requests.txt", "r") as infile:
@@ -63,7 +64,18 @@ def read_requests():
                     request_dict = {}
                 elif line == "END REQUEST":
                     if request_dict:
-                        requests.append(request_dict)
+                        if not request_dict.get("model_feed"):
+                            raise UserWarning("No model_feed given. This "\
+                                              "parameter must be specified.")
+                        else:
+                            # Want to group model feeds together so we don't
+                            # have to have a new WCS2Requester instance every
+                            # time.
+                            model_feed = request_dict.pop("model_feed")
+                            if requests.get(model_feed):
+                                requests[model_feed].append(request_dict)
+                            else:
+                                requests[model_feed] = [request_dict]
                 else:
                     if request_dict is not None:
                         req_params = line.split("=")
@@ -108,13 +120,16 @@ def main():
 
     """
     api_key = "4fc1f5e2-00f9-4ef2-a252-e5c3e9af1734"
-    req = WCS2Requester(api_key)
-
     requests = read_requests()
 
-    for i, request_dict in enumerate(requests):
-        response = req.getCoverage(stream=True, **request_dict)
-        to_thredds(response.content, "pytest.nc")
+    for model_feed in requests.keys():
+        req = WCS2Requester(api_key, model_feed)
+
+        for request_dict in requests[model_feed]:
+            response = req.getCoverage(savepath="temp_test.nc", **request_dict)
+            #print get_cubes(response, 0)
+
+            #to_thredds(response.content, "pytest.nc")
 
 if __name__ == "__main__":
     main()

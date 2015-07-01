@@ -1,9 +1,19 @@
-# Example request for Wind speed data
+# Explanation of this file here.
+
 START REQUEST
-coverage_id=UKPPBEST_Latest_AGL
-components=Wind_Speed
+model_feed=GlobEGRR
+coverage_id=GlobEGRR_Latest_ISBL
+components=temperature
 format=NetCDF3
-elevation=10
-bbox=-14.0, 47.5, 7.0, 61.0
-time=2015-06-24T06:00:00Z
+elevation=100, 700
 END REQUEST
+
+#START REQUEST
+#model_feed=GlobEGRR
+#coverage_id=GlobEGRR_Latest_ISBL
+#components=temperature
+#format=NetCDF3
+#elevation=10
+#bbox=-14.0, 47.5, 7.0, 61.0
+#time=2015-06-24T06:00:00Z
+#END REQUEST
