@@ -1,19 +1,11 @@
-# Explanation of this file here.
+# Here is where you create the requests for data to be pulled from BDS and
+# placed on thredds. See data_requests_help.txt for help.
 
 START REQUEST
+var_name=temperature
 model_feed=GlobEGRR
 coverage_id=GlobEGRR_Latest_ISBL
 components=temperature
 format=NetCDF3
-elevation=100, 700
+bbox=-14.0, 47.5, 7.0, 61.0
 END REQUEST
-
-#START REQUEST
-#model_feed=GlobEGRR
-#coverage_id=GlobEGRR_Latest_ISBL
-#components=temperature
-#format=NetCDF3
-#elevation=10
-#bbox=-14.0, 47.5, 7.0, 61.0
-#time=2015-06-24T06:00:00Z
-#END REQUEST

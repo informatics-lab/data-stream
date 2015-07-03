@@ -1,19 +1,17 @@
 """
 Pull data from Met Office Beta Data Services and push to thredds repository.
 
-Issues:
-What is directory structure for thredds?
-WCS2 requests require the date to be given (WCS1 automates to the latest), how
-to handle this. Does WCS1 do 3D data?
-
 """
 from betadataservices import WCS2Requester
 from paramiko.client import SSHClient
+import dateutil.parser
 
-valid_req_params = ["model_feed", "coverage_id", "components", "format",
-                    "elevation", "bbox", "time", "width", "height",
+valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
+                    "format", "elevation", "bbox", "time", "width", "height",
                     "interpolation"]
 
+format_dict = {"NetCDF3" : "nc",
+               "GRIB2"   : "grib2"}
 
 ##################### Functions for convertion if needed #####################
 import iris
@@ -23,9 +21,6 @@ def get_tmp_filename(id):
     return "_tmp_res_data_%s.nc" % id
 
 def remove_tmp_file(id):
-    """
-
-    """
     tmp_filename = get_tmp_filename(id)
     os.remove(tmp_filename)
 
@@ -98,6 +93,30 @@ def read_requests():
                             request_dict[req_params[0]] = req_params[1]
     return requests
 
+def write_filename(model, variable, init, fmt):
+    return "{mod}_{var}_{init}.{fmt}".format(mod=model,
+                                             var=variable,
+                                             init=init,
+                                             fmt=fmt)
+
+def format_date(cov_date):
+    """
+    Convert date to given format for filename.
+
+    """
+    dtime = dateutil.parser.parse(cov_date)
+    return dtime.strftime("%Y%m%dT%H%M%S")
+
+def create_filename(req, request_dict):
+    """
+    Build the filename format.
+
+    """
+    coverage = req.describeCoverage(request_dict["coverage_id"], show=False)
+    init_date = format_date(coverage.dim_runs)
+    return write_filename(req.model_feed, request_dict["var_name"],
+                          init_date, format_dict[request_dict["format"]])
+
 def to_thredds(data, filename,
                thredds="ec2-52-16-245-62.eu-west-1.compute.amazonaws.com",
                username="ec2-user",
@@ -116,9 +135,6 @@ def to_thredds(data, filename,
     ssh.close()
 
 def main():
-    """
-
-    """
     api_key = "4fc1f5e2-00f9-4ef2-a252-e5c3e9af1734"
     requests = read_requests()
 
@@ -126,10 +142,10 @@ def main():
         req = WCS2Requester(api_key, model_feed)
 
         for request_dict in requests[model_feed]:
-            response = req.getCoverage(savepath="temp_test.nc", **request_dict)
-            #print get_cubes(response, 0)
-
-            #to_thredds(response.content, "pytest.nc")
+            filename = create_filename(req, request_dict)
+            request_dict.pop("var_name")
+            response = req.getCoverage(stream=True, **request_dict)
+            to_thredds(response.content, filename)
 
 if __name__ == "__main__":
     main()
