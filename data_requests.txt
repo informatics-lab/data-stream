@@ -2,10 +2,10 @@
 # placed on thredds. See data_requests_help.txt for help.
 
 START REQUEST
-var_name=temperature
-model_feed=GlobEGRR
-coverage_id=GlobEGRR_Latest_ISBL
-components=temperature
-format=NetCDF3
-bbox=-14.0, 47.5, 7.0, 61.0
+var_name=cloud_frac
+model_feed=UKV2EGRR
+coverage_id=UKV2EGRR_Latest_AGL
+components=cloud-amount
+format=GRIB2
+bbox=-180.0, -90.0, 180.0, 90.0
 END REQUEST
