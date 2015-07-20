@@ -5,6 +5,7 @@ Pull data from Met Office Beta Data Services and push to thredds repository.
 from betadataservices import WCS2Requester
 from paramiko.client import SSHClient
 import dateutil.parser
+import os
 
 valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
                     "format", "elevation", "bbox", "time", "width", "height",
@@ -13,30 +14,11 @@ valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
 format_dict = {"NetCDF3" : "nc",
                "GRIB2"   : "grib2"}
 
-##################### Functions for convertion if needed #####################
-import iris
-import os
-
-def get_tmp_filename(id):
-    return "_tmp_res_data_%s.nc" % id
-
-def remove_tmp_file(id):
-    tmp_filename = get_tmp_filename(id)
-    os.remove(tmp_filename)
-
-def get_cubes(response, id):
-    """
-    To load data into cube, currently it must be temperarily saved to file and
-    loaded back in. The id used to create a unique filename when parallel
-    processing.
-
-    """
-    tmp_filename = get_tmp_filename(id)
-    with open(tmp_filename, "w") as outfile:
-        outfile.write(response.content)
-    cubes = iris.load(tmp_filename)
-    return cubes
-##############################################################################
+# Set up enviroment variables.
+thrds_url      = os.environ['THREDDS_URL']
+thrds_username = os.environ['THREDDS_USERNAME']
+thrds_datadir  = os.environ['THREDDS_DATADIR']
+api_key        = os.environ['API_KEY']
 
 def read_requests():
     """
@@ -117,12 +99,11 @@ def create_filename(req, request_dict):
     return write_filename(req.model_feed, request_dict["var_name"],
                           init_date, format_dict[request_dict["format"]])
 
-def to_thredds(data, filename,
-               thredds="ec2-52-16-245-62.eu-west-1.compute.amazonaws.com",
-               username="ec2-user",
-               data_dir="/var/lib/tomcat/content/thredds/public/lab_data/"):
+def to_thredds(data, filename, thredds=thrds_url, username=thrds_username,
+               data_dir=thrds_datadir):
     """
     Put data in thredds directory.
+
 
     """
     ssh = SSHClient()
@@ -135,7 +116,6 @@ def to_thredds(data, filename,
     ssh.close()
 
 def main():
-    api_key = "4fc1f5e2-00f9-4ef2-a252-e5c3e9af1734"
     requests = read_requests()
 
     for model_feed in requests.keys():
