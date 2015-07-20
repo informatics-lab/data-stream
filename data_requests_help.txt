@@ -37,8 +37,8 @@ var_name    - This is completely up to you, it is only used in the filename
 model_feed  - The model from which the data comes. Use
               bds.available_model_feeds() to see what's available.
 
-coverage_id - With the chosen model feed, initial a bds.WCS2Requester and use
-              the getCapabilities() method to list available coverage ids.
+coverage_id - With the chosen model feed, initialise a bds.WCS2Requester and
+              use the getCapabilities() method to list available coverage ids.
 
 components  - With the chosen coverage id, use the describeCoverage() method
               to list available components.
