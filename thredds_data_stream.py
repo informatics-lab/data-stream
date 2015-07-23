@@ -3,9 +3,11 @@ Pull data from Met Office Beta Data Services and push to thredds repository.
 
 """
 from betadataservices import WCS2Requester
-from paramiko.client import SSHClient
+
 import dateutil.parser
 import os
+import requests
+import io
 
 valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
                     "format", "elevation", "bbox", "time", "width", "height",
@@ -16,8 +18,8 @@ format_dict = {"NetCDF3" : "nc",
 
 # Set up enviroment variables.
 thrds_url      = os.environ['THREDDS_URL']
-thrds_username = os.environ['THREDDS_USERNAME']
-thrds_datadir  = os.environ['THREDDS_DATADIR']
+thrds_username = 'null' #os.environ['THREDDS_USERNAME']
+thrds_datadir  = 'null' #os.environ['THREDDS_DATADIR']
 api_key        = os.environ['API_KEY']
 
 def read_requests():
@@ -99,21 +101,21 @@ def create_filename(req, request_dict):
     return write_filename(req.model_feed, request_dict["var_name"],
                           init_date, format_dict[request_dict["format"]])
 
-def to_thredds(data, filename, thredds=thrds_url, username=thrds_username,
-               data_dir=thrds_datadir):
+def to_thredds(content, filename, thredds=thrds_url, username=thrds_username):
     """
-    Put data in thredds directory.
+    Post data to thredds sever.
 
 
     """
-    ssh = SSHClient()
-    ssh.load_system_host_keys()
-    ssh.connect(thredds, username=username)
-    sftp = ssh.open_sftp()
-    outfile = sftp.open(data_dir + filename, 'w')
-    outfile.write(data)
-    outfile.close()
-    ssh.close()
+    s = requests.Session()
+    s.auth = ('user', 'pass')
+    s.headers.update({'my-filename': filename})
+
+    try:
+        with io.BytesIO( content ) as f:
+            s.post(thrds_url, data=f)
+    except Exception, e:
+        raise UserWarning("to_thredds error: %s" %e)
 
 def main():
     requests = read_requests()
