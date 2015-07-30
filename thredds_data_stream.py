@@ -17,10 +17,20 @@ format_dict = {"NetCDF3" : "nc",
                "GRIB2"   : "grib2"}
 
 # Set up enviroment variables.
-thrds_url      = os.environ['THREDDS_URL']
-thrds_username = 'null' #os.environ['THREDDS_USERNAME']
-thrds_datadir  = 'null' #os.environ['THREDDS_DATADIR']
+# For BDS
 api_key        = os.environ['API_KEY']
+# For the thredds (tomcat) server
+# Note that upload is via HTTP POST of multipart file.
+# The username and password are for this form only.
+# The upload form checks for file size and type so
+# security requirements are minimal.
+thrds_url      = os.environ['THREDDS_URL']
+thrds_username = os.environ['THREDDS_USER']
+thrds_password = os.environ['THREDDS_PASS']
+thrds_catalog = os.environ['THREDDS_CATALOG']
+thrds_queue = os.environ['THREDDS_QUEUE']
+aws_region = os.environ['AWS_REGION']
+
 
 def read_requests():
     """
@@ -101,7 +111,7 @@ def create_filename(req, request_dict):
     return write_filename(req.model_feed, request_dict["var_name"],
                           init_date, format_dict[request_dict["format"]])
 
-def to_thredds(content, filename, thredds=thrds_url, username=thrds_username):
+def to_thredds(content, filename, thredds=thrds_url, username=thrds_username, as_data=False):
     """
     Post data to thredds sever.
 
@@ -111,11 +121,35 @@ def to_thredds(content, filename, thredds=thrds_url, username=thrds_username):
     s.auth = ('user', 'pass')
     s.headers.update({'my-filename': filename})
 
-    try:
-        with io.BytesIO( content ) as f:
-            s.post(thrds_url, data=f)
-    except Exception, e:
-        raise UserWarning("to_thredds error: %s" %e)
+    if as_data:
+        try:
+            with io.BytesIO( content ) as f:
+                s.post(thrds_url, data=f)
+        except Exception, e:
+            raise UserWarning("to_thredds error: %s" % e)
+    else:
+        print("to_thredds uploading: %s (length %d) " % (filename,len(content)))
+        # use multi-part form
+        files = {filename: io.BytesIO( content )}
+        try:
+            r = s.post(thrds_url, files=files)
+            print("to_thredds uploaded: %s" % r.text)
+        except Exception, e:
+            raise UserWarning("to_thredds error: %s" % e)
+
+
+def postTHREDDSJob(msg, queue_name="thredds_queue"):
+    import boto.sqs
+    import boto.sqs.message
+    # NB. AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must
+    # be set in calling environment.
+    conn = boto.sqs.connect_to_region(aws_region)
+    #print conn.get_all_queues()
+    queue = conn.get_queue(queue_name)
+    #print "Adding " + msg + " to queue[" + queue_name + "]"
+    m = boto.sqs.message.Message()
+    m.set_body(msg)
+    queue.write(m)
 
 def main():
     requests = read_requests()
@@ -128,6 +162,7 @@ def main():
             request_dict.pop("var_name")
             response = req.getCoverage(stream=True, **request_dict)
             to_thredds(response.content, filename)
+            postTHREDDSJob(thrds_catalog + "/" + filename)
 
 if __name__ == "__main__":
     main()
