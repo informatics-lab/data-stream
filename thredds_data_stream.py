@@ -133,7 +133,10 @@ def to_thredds(content, filename, thredds=thrds_url, username=thrds_username, as
         files = {filename: io.BytesIO( content )}
         try:
             r = s.post(thrds_url, files=files)
-            print("to_thredds uploaded: %s" % r.text)
+            print("to_thredds upload status code: %d" % r.status_code)
+            print r.ok
+        # Possible errors
+        # UserWarning: to_thredds error: ('Connection aborted.', error(32, 'Broken pipe'))
         except Exception, e:
             raise UserWarning("to_thredds error: %s" % e)
 
@@ -151,18 +154,29 @@ def postTHREDDSJob(msg, queue_name="thredds_queue"):
     m.set_body(msg)
     queue.write(m)
 
-def main():
+def main(debug=False, upload=True):
     requests = read_requests()
+
+    print requests
 
     for model_feed in requests.keys():
         req = WCS2Requester(api_key, model_feed)
-
         for request_dict in requests[model_feed]:
+
+            print request_dict
+
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
+
+            desc = req.describeCoverage( request_dict['coverage_id'] )
+
+            print desc
+
             response = req.getCoverage(stream=True, **request_dict)
-            to_thredds(response.content, filename)
-            postTHREDDSJob(thrds_catalog + "/" + filename)
+
+            if upload:
+                to_thredds(response.content, filename)
+                postTHREDDSJob(thrds_catalog + "/" + filename)
 
 if __name__ == "__main__":
-    main()
+    main(debug=True, upload=False)
