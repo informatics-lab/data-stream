@@ -28,7 +28,7 @@ thrds_url      = os.environ['THREDDS_URL']
 thrds_username = os.environ['THREDDS_USER']
 thrds_password = os.environ['THREDDS_PASS']
 thrds_catalog = os.environ['THREDDS_CATALOG']
-thrds_queue = os.environ['THREDDS_QUEUE']
+thrds_queue = "thredds_queue"
 aws_region = os.environ['AWS_REGION']
 
 
@@ -154,23 +154,17 @@ def postTHREDDSJob(msg, queue_name="thredds_queue"):
     m.set_body(msg)
     queue.write(m)
 
-def main(debug=False, upload=True):
+def main(upload=True):
     requests = read_requests()
-
-    print requests
 
     for model_feed in requests.keys():
         req = WCS2Requester(api_key, model_feed)
         for request_dict in requests[model_feed]:
 
-            print request_dict
-
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
 
             desc = req.describeCoverage( request_dict['coverage_id'] )
-
-            print desc
 
             response = req.getCoverage(stream=True, **request_dict)
 
@@ -179,4 +173,4 @@ def main(debug=False, upload=True):
                 postTHREDDSJob(thrds_catalog + "/" + filename)
 
 if __name__ == "__main__":
-    main(debug=True, upload=False)
+    main(upload=True)
