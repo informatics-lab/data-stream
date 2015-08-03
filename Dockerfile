@@ -10,3 +10,5 @@ RUN git clone https://github.com/met-office-lab/beta-data-services bds
 RUN cd bds && python setup.py
 
 ADD [^.]* ./
+
+CMD python thredds_data_stream.py
