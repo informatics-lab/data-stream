@@ -6,6 +6,6 @@ var_name=cloud_frac
 model_feed=UKV2EGRR
 coverage_id=UKV2EGRR_Latest_AGL
 components=cloud-amount
-format=GRIB2
+format=NETCDF
 bbox=-4.93266,49.31965,-2.12066,52.13165
 END REQUEST
