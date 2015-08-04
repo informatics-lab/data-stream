@@ -26,11 +26,7 @@ api_key        = os.environ['API_KEY']
 # The username and password are for this form only.
 # The upload form checks for file size and type so
 # security requirements are minimal.
-thrds_url      = os.environ['THREDDS_URL']
-thrds_username = os.environ['THREDDS_USER']
-thrds_password = os.environ['THREDDS_PASS']
-thrds_catalog = os.environ['THREDDS_CATALOG']
-thrds_queue = "thredds_queue"
+
 aws_region = os.environ['AWS_REGION']
 SNS_TOPIC = "arn:aws:sns:eu-west-1:536099501702:data_manager"
 SNS_REGION = "eu-west-1"
@@ -132,8 +128,11 @@ def main(upload=True):
 
             with open(filename, "wb") as f:
                 f.write(response.content)
-            sns = SNSConnection(SNS_REGION)
-            sns.publish(SNS_TOPIC, thrds_catalog + "/" + filename)
+            conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
+                                      aws_access_key_id=os.getenv("AWS_KEY"),
+                                      aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
+            conn.publish(os.environ['SNS_TOPIC'],
+                         os.environ['THREDDS_CATALOG'] + "/" + filename) 
 
 if __name__ == "__main__":
     main()
