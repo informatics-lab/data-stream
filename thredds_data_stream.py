@@ -8,6 +8,8 @@ import dateutil.parser
 import os
 import requests
 import io
+import boto
+import boto.sns
 
 valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
                     "format", "elevation", "bbox", "time", "width", "height",
@@ -30,7 +32,10 @@ thrds_password = os.environ['THREDDS_PASS']
 thrds_catalog = os.environ['THREDDS_CATALOG']
 thrds_queue = "thredds_queue"
 aws_region = os.environ['AWS_REGION']
+SNS_TOPIC = "arn:aws:sns:eu-west-1:536099501702:data_manager"
+SNS_REGION = "eu-west-1"
 
+from boto.sns import SNSConnection
 
 def read_requests():
     """
@@ -111,48 +116,6 @@ def create_filename(req, request_dict):
     return write_filename(req.model_feed, request_dict["var_name"],
                           init_date, format_dict[request_dict["format"]])
 
-def to_thredds(content, filename, thredds=thrds_url, username=thrds_username, as_data=False):
-    """
-    Post data to thredds sever.
-
-
-    """
-    s = requests.Session()
-    s.auth = ('user', 'pass')
-    s.headers.update({'my-filename': filename})
-
-    if as_data:
-        try:
-            with io.BytesIO( content ) as f:
-                s.post(thrds_url, data=f)
-        except Exception, e:
-            raise UserWarning("to_thredds error: %s" % e)
-    else:
-        print("to_thredds uploading: %s (length %d) " % (filename,len(content)))
-        # use multi-part form
-        files = {filename: io.BytesIO( content )}
-        try:
-            r = s.post(thrds_url, files=files)
-            print("to_thredds upload status code: %d" % r.status_code)
-            print r.ok
-        # Possible errors
-        # UserWarning: to_thredds error: ('Connection aborted.', error(32, 'Broken pipe'))
-        except Exception, e:
-            raise UserWarning("to_thredds error: %s" % e)
-
-
-def postTHREDDSJob(msg, queue_name="thredds_queue"):
-    import boto.sqs
-    import boto.sqs.message
-    # NB. AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY must
-    # be set in calling environment.
-    conn = boto.sqs.connect_to_region(aws_region)
-    #print conn.get_all_queues()
-    queue = conn.get_queue(queue_name)
-    #print "Adding " + msg + " to queue[" + queue_name + "]"
-    m = boto.sqs.message.Message()
-    m.set_body(msg)
-    queue.write(m)
 
 def main(upload=True):
     requests = read_requests()
@@ -160,7 +123,6 @@ def main(upload=True):
     for model_feed in requests.keys():
         req = WCS2Requester(api_key, model_feed)
         for request_dict in requests[model_feed]:
-
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
 
@@ -168,9 +130,10 @@ def main(upload=True):
 
             response = req.getCoverage(stream=True, **request_dict)
 
-            if upload:
-                to_thredds(response.content, filename)
-                postTHREDDSJob(thrds_catalog + "/" + filename)
+            with open(filename, "wb") as f:
+                f.write(response.content)
+            sns = SNSConnection(SNS_REGION)
+            sns.publish(SNS_TOPIC, thrds_catalog + "/" + filename)
 
 if __name__ == "__main__":
-    main(upload=True)
+    main()
