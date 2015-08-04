@@ -10,10 +10,9 @@ RUN git clone https://github.com/met-office-lab/beta-data-services bds
 RUN cd bds && python setup.py install
 
 ADD ./requirements.txt ./requirements.txt
-ADD ./datastream/__init__.py ./datastream/__init__.py
-ADD ./datastream/data_requests.txt ./datastream/data_requests.txt
-ADD ./datastream/thredds_data_stream.py ./datastream/thredds_data_stream.py
+ADD ./data_requests.txt ./data_requests.txt
+ADD ./thredds_data_stream.py ./thredds_data_stream.py
 
 RUN pip install -r requirements.txt
 
-CMD python ./datastream/thredds_data_stream.py
+CMD python ./thredds_data_stream.py
