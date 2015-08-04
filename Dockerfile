@@ -9,7 +9,11 @@ RUN cd ogc && python setup.py install
 RUN git clone https://github.com/met-office-lab/beta-data-services bds
 RUN cd bds && python setup.py install
 
-ADD [^.]* ./
+ADD ./setup.py ./setup.py
+ADD ./datastream/__init__.py ./datastream/__init__.py
+ADD ./datastream/data_requests.txt ./datastream/data_requests.txt
+ADD ./datastream/thredds_data_stream.py ./datastream/thredds_data_stream.py
+
 RUN python setup.py install
 
-CMD python thredds_data_stream.py
+CMD python ./datastream/thredds_data_stream.py
