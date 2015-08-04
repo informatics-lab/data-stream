@@ -12,7 +12,7 @@ setup(name='data-stream',
       maintainer='Met Office Informatics Lab',
       url='https://github.com/met-office-lab/data-stream',
       license='TBC',
-      packages=['.'],
+      packages=['datastream'],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Programming Language :: Python :: 2.6',
