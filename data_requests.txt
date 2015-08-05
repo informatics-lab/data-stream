@@ -1,7 +1,6 @@
 # Here is where you create the requests for data to be pulled from BDS and
 # placed on thredds. See data_requests_help.txt for help.
 
-
 START REQUEST
 var_name=cloud_frac
 model_feed=UKV2EGRR
