@@ -114,7 +114,7 @@ def main(upload=True):
     for model_feed in requests.keys():
         req = WCS2Requester(api_key, model_feed)
         for request_dict in requests[model_feed]:
-            filename = create_filename(req, request_dict)
+            filename = "/dev/null"#create_filename(req, request_dict)
             request_dict.pop("var_name")
 
             desc = req.describeCoverage( request_dict['coverage_id'] )
@@ -126,8 +126,8 @@ def main(upload=True):
             conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                                       aws_access_key_id=os.getenv("AWS_KEY"),
                                       aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
-            conn.publish(os.environ['SNS_TOPIC'],
-                         os.environ['THREDDS_CATALOG'] + "/" + filename) 
+            conn.publish(os.getenv['SNS_TOPIC'],
+                         os.getenv['THREDDS_CATALOG'] + "/" + filename) 
 
 if __name__ == "__main__":
     main()
