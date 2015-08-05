@@ -20,16 +20,11 @@ format_dict = {"NetCDF3" : "nc",
 
 # Set up enviroment variables.
 # For BDS
-api_key        = os.environ['API_KEY']
 # For the thredds (tomcat) server
 # Note that upload is via HTTP POST of multipart file.
 # The username and password are for this form only.
 # The upload form checks for file size and type so
 # security requirements are minimal.
-
-aws_region = os.environ['AWS_REGION']
-SNS_TOPIC = "arn:aws:sns:eu-west-1:536099501702:data_manager"
-SNS_REGION = "eu-west-1"
 
 from boto.sns import SNSConnection
 
