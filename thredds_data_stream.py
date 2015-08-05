@@ -127,7 +127,7 @@ def main(upload=True):
                                       aws_access_key_id=os.getenv("AWS_KEY"),
                                       aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
             conn.publish(os.getenv('SNS_TOPIC'),
-                         os.getenv('THREDDS_CATALOG') + "/" + filename) 
+                         os.getenv('/data/' + filename) 
 
 if __name__ == "__main__":
     main()
