@@ -114,7 +114,7 @@ def main(upload=True):
     for model_feed in requests.keys():
         req = WCS2Requester(api_key, model_feed)
         for request_dict in requests[model_feed]:
-            filename = "/dev/null"#create_filename(req, request_dict)
+            filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
 
             desc = req.describeCoverage( request_dict['coverage_id'] )
