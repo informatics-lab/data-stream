@@ -6,10 +6,14 @@ from betadataservices import WCS2Requester
 
 import dateutil.parser
 import os
+import os.path
 import requests
 import io
 import boto
 import boto.sns
+import time
+
+POLL_PERIOD = 15*60
 
 valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
                     "format", "elevation", "bbox", "time", "width", "height",
@@ -108,6 +112,11 @@ def create_filename(req, request_dict):
                           init_date, format_dict[request_dict["format"]])
 
 
+def getFilePath(filename):
+    """ holder incase this needs to get more exotic """
+    return os.path.join("/data", filename)
+
+
 def main(upload=True):
     requests = read_requests()
 
@@ -119,15 +128,17 @@ def main(upload=True):
 
             desc = req.describeCoverage( request_dict['coverage_id'] )
 
-            response = req.getCoverage(stream=True, **request_dict)
-
-            with open("/data/" + filename, "wb") as f:
-                f.write(response.content)
-            conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
+            p = getFilePath(filename)
+            if not os.path.exists(p):
+                response = req.getCoverage(stream=True, **request_dict)
+                with open(p, "wb") as f:
+                    f.write(response.content)
+                conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                                       aws_access_key_id=os.getenv("AWS_KEY"),
                                       aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
-            conn.publish(os.getenv('SNS_TOPIC'),
-                         os.getenv('THREDDS_CATALOG') + "/" + filename) 
+                conn.publish(os.getenv('SNS_TOPIC'),
+                             os.getenv('THREDDS_CATALOG') + "/" + filename)
+            time.sleep(POLL_PERIOD)
 
 if __name__ == "__main__":
     main()
