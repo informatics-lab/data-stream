@@ -112,7 +112,7 @@ def main(upload=True):
     requests = read_requests()
 
     for model_feed in requests.keys():
-        req = WCS2Requester(api_key, model_feed)
+        req = WCS2Requester(os.getenv('API_KEY'), model_feed)
         for request_dict in requests[model_feed]:
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
