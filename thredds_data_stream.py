@@ -144,7 +144,8 @@ def main(upload=True):
                     conn.publish(os.getenv('SNS_TOPIC'),
                                  os.getenv('THREDDS_CATALOG') + "/" + filename)
                 time.sleep(POLL_PERIOD)
-            except UserWarning:
+            except UserWarning as e:
+                print str(e)
                 time.sleep(POLL_PERIOD/10.0)
             
 
