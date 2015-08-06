@@ -128,21 +128,25 @@ def main(upload=True):
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
 
-            desc = req.describeCoverage( request_dict['coverage_id'] )
+            try:
+                desc = req.describeCoverage( request_dict['coverage_id'] )
 
-            p = getFilePath(filename)
-            if not os.path.exists(p):
-                response = req.getCoverage(stream=True, **request_dict)
-                print "Saving file " + filename
-                with open(p, "wb") as f:
-                    f.write(response.content)
-                print "File saved, posting to SNS"
-                conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
-                                      aws_access_key_id=os.getenv("AWS_KEY"),
-                                      aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
-                conn.publish(os.getenv('SNS_TOPIC'),
-                             os.getenv('THREDDS_CATALOG') + "/" + filename)
-            time.sleep(POLL_PERIOD)
+                p = getFilePath(filename)
+                if not os.path.exists(p):
+                    response = req.getCoverage(stream=True, **request_dict)
+                    print "Saving file " + filename
+                    with open(p, "wb") as f:
+                        f.write(response.content)
+                    print "File saved, posting to SNS"
+                    conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
+                                          aws_access_key_id=os.getenv("AWS_KEY"),
+                                          aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
+                    conn.publish(os.getenv('SNS_TOPIC'),
+                                 os.getenv('THREDDS_CATALOG') + "/" + filename)
+                time.sleep(POLL_PERIOD)
+            except UserWarning:
+                time.sleep(POLL_PERIOD/10.0)
+            
 
 if __name__ == "__main__":
     main()
