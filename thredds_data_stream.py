@@ -13,7 +13,7 @@ import boto
 import boto.sns
 import time
 
-POLL_PERIOD = 15*60
+POLL_PERIOD = 1*60
 
 valid_req_params = ["var_name", "model_feed", "coverage_id", "components",
                     "format", "elevation", "bbox", "time", "width", "height",
