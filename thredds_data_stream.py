@@ -121,8 +121,10 @@ def main(upload=True):
     requests = read_requests()
 
     for model_feed in requests.keys():
+        print "Doing model feed " + str(model_feed)
         req = WCS2Requester(os.getenv('API_KEY'), model_feed)
         for request_dict in requests[model_feed]:
+            print "Doing request_dict " + str(request_dict)
             filename = create_filename(req, request_dict)
             request_dict.pop("var_name")
 
@@ -131,8 +133,10 @@ def main(upload=True):
             p = getFilePath(filename)
             if not os.path.exists(p):
                 response = req.getCoverage(stream=True, **request_dict)
+                print "Saving file " + filename
                 with open(p, "wb") as f:
                     f.write(response.content)
+                print "File saved, posting to SNS"
                 conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                                       aws_access_key_id=os.getenv("AWS_KEY"),
                                       aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
