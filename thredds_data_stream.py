@@ -133,6 +133,7 @@ def main(upload=True):
 
                 p = getFilePath(filename)
                 if not os.path.exists(p):
+                    time.sleep(60*60) # HACKITY HACKITY HACK...eugh
                     response = req.getCoverage(stream=True, **request_dict)
                     print "Saving file " + filename
                     cont = response.content
