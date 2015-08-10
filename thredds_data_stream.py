@@ -114,7 +114,7 @@ def create_filename(req, request_dict):
 
 def getFilePath(filename):
     """ holder incase this needs to get more exotic """
-    return os.path.join("/data", filename)
+    return filename #os.path.join("/data", filename)
 
 
 def main(upload=True):
@@ -135,8 +135,9 @@ def main(upload=True):
                 if not os.path.exists(p):
                     response = req.getCoverage(stream=True, **request_dict)
                     print "Saving file " + filename
+                    cont = response.content
                     with open(p, "wb") as f:
-                        f.write(response.content)
+                        f.write(cont)
                     print "File saved, posting to SNS"
                     conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                                           aws_access_key_id=os.getenv("AWS_KEY"),
@@ -145,7 +146,7 @@ def main(upload=True):
                                  os.getenv('THREDDS_CATALOG') + "/" + filename)
                 time.sleep(POLL_PERIOD)
             except UserWarning as e:
-                print str(e)
+                print "USER WARNING from BDS"
                 time.sleep(POLL_PERIOD/10.0)
             
 
