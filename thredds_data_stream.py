@@ -114,7 +114,7 @@ def create_filename(req, request_dict):
 
 def getFilePath(filename):
     """ holder incase this needs to get more exotic """
-    return filename #os.path.join("/data", filename)
+    return os.path.join("/data", filename)
 
 
 def main(upload=True):
