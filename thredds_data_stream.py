@@ -31,7 +31,7 @@ class MyHandler(FTPHandler):
                                           aws_access_key_id=os.getenv("AWS_KEY"),
                                           aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
         conn.publish(os.getenv('SNS_TOPIC'),
-                     os.getenv('THREDDS_CATALOG') + "/" + filename)
+                     os.getenv('THREDDS_CATALOG') + "/" + file)
 
     def on_incomplete_file_received(self, file):
         # remove partially uploaded files
