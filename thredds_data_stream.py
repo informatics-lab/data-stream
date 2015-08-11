@@ -15,8 +15,6 @@ from pyftpdlib import servers
 
 from boto.sns import SNSConnection
 
-FTP_ADDRESS = "0.0.0.0"
-PORT = 21
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 from pyftpdlib.servers import DummyAuthorizer
