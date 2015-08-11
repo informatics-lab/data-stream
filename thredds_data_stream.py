@@ -47,7 +47,7 @@ def main():
 
     handler = MyHandler
     handler.authorizer = authorizer
-    server = FTPServer(os.getenv('FTP_ADDRESS'), os.getenv('FTP_PORT'), handler)
+    server = FTPServer((os.getenv('FTP_ADDRESS'), os.getenv('FTP_PORT')), handler)
     server.serve_forever()
 
 if __name__ == "__main__":
