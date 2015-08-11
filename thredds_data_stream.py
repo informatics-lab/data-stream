@@ -46,8 +46,8 @@ def main():
                         perm='elradfmw')
 
     handler = MyHandler
-    handler.masquerade_address = "thredds.informaticslab.co.uk"
-    handler.passive_ports = range(int(os.getenv('FTP_PORT_PASV_START')), int(os.getenv('FTP_PORT_PASV_END'))+1)
+    handler.masquerade_address = os.getenv('FTP_PASV_ADDRESS')
+    handler.passive_ports = range(int(os.getenv('FTP_PASV_PORT_START')), int(os.getenv('FTP_PASV_PORT_END'))+1)
     handler.authorizer = authorizer
     server = FTPServer((os.getenv('FTP_ADDRESS'), os.getenv('FTP_PORT')), handler)
     server.serve_forever()
