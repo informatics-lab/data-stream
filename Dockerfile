@@ -4,6 +4,7 @@ RUN apt-get update \
   && apt-get -y --force-yes install git python python-setuptools python-pip
 
 ADD ./thredds_data_stream.py ./thredds_data_stream.py
+ADD ./requirements.txt ./requirements.txt
 
 RUN pip install -r requirements.txt
 
