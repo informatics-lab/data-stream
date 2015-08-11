@@ -18,7 +18,7 @@ from boto.sns import SNSConnection
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 from pyftpdlib.authorizers import DummyAuthorizer
-    
+
 
 class MyHandler(FTPHandler):
 
@@ -47,6 +47,7 @@ def main():
 
     handler = MyHandler
     handler.masquerade_address = "thredds.informaticslab.co.uk"
+    handler.passive_ports = range(int(os.getenv('FTP_PORT_PASV_START')), int(os.getenv('FTP_PORT_PASV_END'))+1)
     handler.authorizer = authorizer
     server = FTPServer((os.getenv('FTP_ADDRESS'), os.getenv('FTP_PORT')), handler)
     server.serve_forever()
