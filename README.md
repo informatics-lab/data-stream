@@ -8,9 +8,12 @@ Download and upload use HTTPS/HTTP protocol and the requests library.
 
 All must be set, there are no default values.
 
- * *API_KEY*: BDS (DataPoint) API key
- * *THREDDS_UPLOAD*: URL for upload (HTTP POST of mutlipart file to here)
- * *THREDDS_USER*: Username for basic authentication
- * *THREDDS_PASS*: Password for basic authentication
  * *THREDDS_CATALOG*: Catalogue URI to which file name is added.
- * *THREDDS_QUEUE*: AQS queue name
+ * *AWS_REGION*: AWS server region
+ * *AWS_KEY*: Key to access AWS
+ * *AWS_SECRET_KEY*: Secret key to access AWS
+ * *SNS_TOPIC*: Topic name for AWS SNS
+ * *FTP_HOST*: Server to pull data from
+ * *FTP_USER*: User for FTP login
+ * *FTP_PASS*: Password for FTP login
+ * *DATA_DIR*: Directory where data is stored on FTP host
