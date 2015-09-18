@@ -22,23 +22,23 @@ def connect():
     ftp.login(os.getenv('FTP_USER'), os.getenv('FTP_PASS'))
     return ftp
 
+def nofiles(ftp):
+    print "No files found"
+    disconnect(ftp)
+    print "Sleeping for 15 minutes..."
+    time.sleep(60*15)
+    print "Maybe there are new files now, exiting to restart service."
+    sys.exit(1)
+
 def getfile(ftp):
     files = []
 
     try:
         files = ftp.nlst()
-    except ftplib.error_perm, resp:
-        if str(resp) == "550 No files found":
-            print "No files found"
-            disconnect(ftp)
-            print "Sleeping for 15 minutes..."
-            time.sleep(60*15)
-            print "Maybe there are new files now, exiting to restart service."
-            sys.exit(1)
-        else:
-            raise
+        file = files[0]
+    except Exception, resp:
+        nofiles(ftp)
 
-    file = files[0]
     print "Found file"
     print "Downloading " + file
     ftp.retrbinary('RETR ' + file, open(os.getenv('DATA_DIR') + file, 'wb').write)
