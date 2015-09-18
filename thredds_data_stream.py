@@ -6,51 +6,58 @@
 import dateutil.parser
 import os
 import os.path
-import requests
 import io
 import boto
 import boto.sns
 import time
-from pyftpdlib import servers
+import ftplib
+import sys
 
 from boto.sns import SNSConnection
 
-from pyftpdlib.handlers import FTPHandler
-from pyftpdlib.servers import FTPServer
-from pyftpdlib.authorizers import DummyAuthorizer
+def connect():
+    ftp_server = os.getenv('FTP_HOST')
+    print "Connecting to FTP server " + ftp_server
+    ftp = ftplib.FTP(ftp_server)
+    ftp.login(os.getenv('FTP_USER'), os.getenv('FTP_PASS'))
+    return ftp
 
+def getfile(ftp):
+    files = []
 
-class MyHandler(FTPHandler):
+    try:
+        files = ftp.nlst()
+    except ftplib.error_perm, resp:
+        if str(resp) == "550 No files found":
+            print "No files found"
+            disconnect(ftp)
+            print "Sleeping for 15 minutes..."
+            time.sleep(60*15)
+            print "Maybe there are new files now, exiting to restart service."
+            sys.exit(1)
+        else:
+            raise
 
-    def on_connect(self):
-        print "%s:%s connected" % (self.remote_ip, self.remote_port)
+    file = files[0]
+    print "Found file"
+    print "Downloading " + file
+    ftp.retrbinary('RETR ' + file, open(os.getenv('DATA_DIR') + file, 'wb').write)
+    ftp.delete(file)
+    print "File saved, posting to SNS"
+    conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
+                            aws_access_key_id=os.getenv("AWS_KEY"),
+                            aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
+    conn.publish(os.getenv('SNS_TOPIC'),
+                os.getenv('THREDDS_CATALOG') + "/" + filename)
 
-    def on_file_received(self, file):
-        print "File saved, posting to SNS"
-        conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
-                                          aws_access_key_id=os.getenv("AWS_KEY"),
-                                          aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
-        conn.publish(os.getenv('SNS_TOPIC'),
-                     os.getenv('THREDDS_CATALOG') + "/" + file)
-
-    def on_incomplete_file_received(self, file):
-        # remove partially uploaded files
-        import os
-        os.remove(file)
+def disconnect(ftp):
+    print "Disconnecting from FTP server"
+    ftp.quit()
 
 def main():
-    authorizer = DummyAuthorizer()
-    authorizer.add_user(os.getenv('FTP_USER'),
-                        os.getenv('FTP_PASS'),
-                        homedir=os.getenv('DATA_DIR'),
-                        perm='elradfmw')
-
-    handler = MyHandler
-    handler.masquerade_address = os.getenv('FTP_PASV_ADDRESS')
-    handler.passive_ports = range(int(os.getenv('FTP_PASV_PORT_START')), int(os.getenv('FTP_PASV_PORT_END'))+1)
-    handler.authorizer = authorizer
-    server = FTPServer((os.getenv('FTP_ADDRESS'), os.getenv('FTP_PORT')), handler)
-    server.serve_forever()
+    ftp = connect()
+    getfile(ftp)
+    disconnect(ftp)
 
 if __name__ == "__main__":
     main()
