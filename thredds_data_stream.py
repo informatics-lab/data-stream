@@ -48,7 +48,7 @@ def getfile(ftp):
                             aws_access_key_id=os.getenv("AWS_KEY"),
                             aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
     conn.publish(os.getenv('SNS_TOPIC'),
-                os.getenv('THREDDS_CATALOG') + "/" + file)
+                 os.getenv('THREDDS_CATALOG') + "/" + file)
 
 def disconnect(ftp):
     print "Disconnecting from FTP server"
