@@ -34,21 +34,26 @@ def getfile(ftp):
     files = []
 
     try:
-        files = ftp.nlst()
+        files = [f for f in ftp.nlst() if f.endswith("grib2")]
         file = files[0]
     except Exception, resp:
         nofiles(ftp)
 
+    ourfile = file+"~"
+    ftp.rename(file, ourfile)
     print "Found file"
     print "Downloading " + file
-    ftp.retrbinary('RETR ' + file, open(os.getenv('DATA_DIR') + file, 'wb').write)
-    ftp.delete(file)
+
+    ftp.retrbinary('RETR ' + ourfile, open(os.getenv('DATA_DIR') + file, 'wb').write)
+
     print "File saved, posting to SNS"
     conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                             aws_access_key_id=os.getenv("AWS_KEY"),
                             aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
     conn.publish(os.getenv('SNS_TOPIC'),
-                 os.getenv('THREDDS_CATALOG') + "/" + file)
+                os.getenv('THREDDS_CATALOG') + "/" + file)
+
+    # ftp.delete(ourfile)
 
 def disconnect(ftp):
     print "Disconnecting from FTP server"
