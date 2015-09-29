@@ -51,8 +51,8 @@ def getfile(ftp):
                             aws_access_key_id=os.getenv("AWS_KEY"),
                             aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
     conn.publish(os.getenv('SNS_TOPIC'),
-                os.getenv('THREDDS_CATALOG') + "/" + file)
-    ftp.rename(file, ourfile+"~")
+                os.getenv('THREDDS_CATALOG') + "/" + os.getenv('DATA_DIR') + "/" + file)
+    ftp.rename(ourfile, ourfile+"~")
 
     # ftp.delete(ourfile)
 
