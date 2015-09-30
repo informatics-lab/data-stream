@@ -1,4 +1,4 @@
-FROM ubuntu:15.04
+FROM quay.io/informaticslab/iris
 
 RUN apt-get update \
   && apt-get -y --force-yes install git python python-setuptools python-pip
