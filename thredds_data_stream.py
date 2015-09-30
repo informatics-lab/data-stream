@@ -63,7 +63,7 @@ def getJobs(file):
     for variable in info["variables"]:
         thisdata = iris.load_cube(file, variable)
         stem, fname = os.path.split(file)
-        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + ".grib"
+        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1]
         iris.save(thisdata, os.path.join(stem, newname))
         postJob(newname)
     os.remove(file)
@@ -81,7 +81,7 @@ def postJob(file):
 def disconnect(ftp):
     print "Disconnecting from FTP server"
     ftp.quit()
-    
+
 
 def main():
     ftp = connect()
