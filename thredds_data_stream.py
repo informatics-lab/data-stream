@@ -43,8 +43,8 @@ def getfile(ftp):
     except Exception, resp:
         nofiles(ftp)
 
-    ourfile = file+"~"
-    ftp.rename(file, ourfile)
+    ourfile = file+"~" 
+    ftp.rename(file, ourfile) 
     print "Found file"
 
     localfile = os.path.join(os.getenv('DATA_DIR'), file)
@@ -64,7 +64,7 @@ def getJobs(file):
         print "Ingesting " + variable
         thisdata = iris.load_cube(file, variable)
         stem, fname = os.path.split(file)
-        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1]
+        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
         iris.save(thisdata, os.path.join(stem, newname))
         postJob(newname) 
     os.remove(file)
