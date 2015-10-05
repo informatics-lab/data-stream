@@ -7,6 +7,7 @@ import dateutil.parser
 import os
 import os.path
 import io
+import iris
 import boto
 import boto.sns
 import time
@@ -14,6 +15,9 @@ import ftplib
 import sys
 
 from boto.sns import SNSConnection
+
+sys.path.append(".")
+from config import manifest
 
 def connect():
     ftp_server = os.getenv('FTP_HOST')
@@ -42,27 +46,48 @@ def getfile(ftp):
     ourfile = file+os.getenv("AWS_REGION")+"~"
     ftp.rename(file, ourfile)
     print "Found file"
-    print "Downloading " + file
 
-    ftp.retrbinary('RETR ' + ourfile, open(os.getenv('DATA_DIR') + file, 'wb').write)
+    localfile = os.path.join(os.getenv('DATA_DIR'), file)
+    print "Downloading " + file + " to " + localfile
+    ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
+    ftp.rename(ourfile, ourfile+"~")
+    # ftp.delete(ourfile)
 
+    return localfile
+
+
+def getJobs(file):
+    info = manifest.runnames[file.split("_")[-2]]
+
+    newfiles = []
+    for variable in info["variables"]:
+        print "Ingesting " + variable
+        thisdata = iris.load_cube(file, variable)
+        stem, fname = os.path.split(file)
+        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1]
+        iris.save(thisdata, os.path.join(stem, newname))
+        postJob(newname)
+    os.remove(file)
+
+
+def postJob(file):
     print "File saved, posting to SNS"
     conn = boto.sns.connect_to_region(os.getenv("AWS_REGION"),
                             aws_access_key_id=os.getenv("AWS_KEY"),
                             aws_secret_access_key=os.getenv("AWS_SECRET_KEY"))
     conn.publish(os.getenv('SNS_TOPIC'),
-                os.getenv('THREDDS_CATALOG') + "/" + file)
-    ftp.rename(file, ourfile+"~")
+                os.path.join(os.getenv('THREDDS_CATALOG'), file))
 
-    # ftp.delete(ourfile)
 
 def disconnect(ftp):
     print "Disconnecting from FTP server"
     ftp.quit()
 
+
 def main():
     ftp = connect()
-    getfile(ftp)
+    filein = getfile(ftp)
+    getJobs(filein)
     disconnect(ftp)
 
 if __name__ == "__main__":
