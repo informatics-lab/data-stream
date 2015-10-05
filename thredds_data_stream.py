@@ -43,8 +43,8 @@ def getfile(ftp):
     except Exception, resp:
         nofiles(ftp)
 
-    ourfile = file+"~" 
-    ftp.rename(file, ourfile) 
+    ourfile = file+os.getenv("AWS_REGION")+"~"
+    ftp.rename(file, ourfile)
     print "Found file"
 
     localfile = os.path.join(os.getenv('DATA_DIR'), file)
@@ -57,7 +57,7 @@ def getfile(ftp):
 
 
 def getJobs(file):
-    info = manifest.runnames[file.slice("_")[-2]]
+    info = manifest.runnames[file.split("_")[-2]]
 
     newfiles = []
     for variable in info["variables"]:
@@ -66,7 +66,7 @@ def getJobs(file):
         stem, fname = os.path.split(file)
         newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
         iris.save(thisdata, os.path.join(stem, newname))
-        postJob(newname) 
+        postJob(newname)
     os.remove(file)
 
 
