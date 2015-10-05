@@ -39,7 +39,7 @@ def getfile(ftp):
     except Exception, resp:
         nofiles(ftp)
 
-    ourfile = file+"~"
+    ourfile = file+os.getenv("AWS_REGION")+"~"
     ftp.rename(file, ourfile)
     print "Found file"
     print "Downloading " + file
