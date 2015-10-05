@@ -48,7 +48,7 @@ def getfile(ftp):
     print "Found file"
 
     localfile = os.path.join(os.getenv('DATA_DIR'), file)
-    print "Downloading " + file
+    print "Downloading " + file + " to " + localfile
     ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
     ftp.rename(ourfile, ourfile+"~")
     # ftp.delete(ourfile)
@@ -61,11 +61,12 @@ def getJobs(file):
 
     newfiles = []
     for variable in info["variables"]:
+        print "Ingesting " + variable
         thisdata = iris.load_cube(file, variable)
         stem, fname = os.path.split(file)
         newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1]
         iris.save(thisdata, os.path.join(stem, newname))
-        postJob(newname)
+        postJob(newname) 
     os.remove(file)
 
 
@@ -85,7 +86,8 @@ def disconnect(ftp):
 
 def main():
     ftp = connect()
-    getfile(ftp)
+    filein = getfile(ftp)
+    getJobs(filein)
     disconnect(ftp)
 
 if __name__ == "__main__":
