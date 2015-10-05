@@ -1,6 +1,6 @@
 # data-stream
 
-Python module to pull data from BDS and upload to the thredds server.
+Python module to pull data from BDS and upload to the Thredds server.
 
 Download and upload use HTTPS/HTTP protocol and the requests library.
 
