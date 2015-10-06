@@ -67,6 +67,7 @@ def getJobs(file):
         newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + info["profile"] + "_" + fname.split("_")[-1].replace("grib2", "nc")
         iris.save(thisdata, os.path.join(stem, newname))
         postJob(newname)
+    print "Removing file", file
     os.remove(file)
 
 
