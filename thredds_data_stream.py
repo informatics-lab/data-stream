@@ -1,6 +1,6 @@
 """
 
-
+ 
 """
 
 import dateutil.parser
@@ -63,16 +63,17 @@ def getfile(ftp):
 
 
 def getJobs(file):
-    info = manifest.runnames[file.slice("_")[-2]]
+    info = manifest.runnames[file.split("_")[-2]]
 
     newfiles = []
     for variable in info["variables"]:
         print "Ingesting " + variable
         thisdata = iris.load_cube(file, variable)
         stem, fname = os.path.split(file)
-        newname = info["model"] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1]
+        newname = file.split("_")[-2] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
         iris.save(thisdata, os.path.join(stem, newname))
-        postJob(newname) 
+        postJob(newname)
+    print "Removing file", file
     os.remove(file)
 
 
