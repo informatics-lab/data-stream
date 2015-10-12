@@ -18,6 +18,7 @@ from boto.sns import SNSConnection
 
 sys.path.append(".")
 from config import manifest
+from timeout import timeout
 
 def connect():
     ftp_server = os.getenv('FTP_HOST')
@@ -34,6 +35,7 @@ def nofiles(ftp):
     print "Maybe there are new files now, exiting to restart service."
     sys.exit(1)
 
+@timeout(15*60)
 def getfile(ftp):
     files = []
 
@@ -46,12 +48,16 @@ def getfile(ftp):
     ourfile = file+"~"
     ftp.rename(file, ourfile)
     print "Found file"
+    try:
+        localfile = os.path.join(os.getenv('DATA_DIR'), file)
+        print "Downloading " + file + " to " + localfile
+        ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
+        ftp.rename(ourfile, ourfile+"~")
+        # ftp.delete(ourfile)
+    except:
+        ftp.rename(ourfile, ourfile.rstrip("~"))
+        raise
 
-    localfile = os.path.join(os.getenv('DATA_DIR'), file)
-    print "Downloading " + file + " to " + localfile
-    ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
-    ftp.rename(ourfile, ourfile+"~")
-    # ftp.delete(ourfile)
 
     return localfile
 
