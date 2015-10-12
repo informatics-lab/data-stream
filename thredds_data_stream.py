@@ -55,7 +55,7 @@ def getfile(ftp):
         ftp.rename(ourfile, ourfile+"~")
         # ftp.delete(ourfile)
     except:
-        ftp.rename(ourfile, ourfile.rstrip("~"))
+        ftp.rename(ourfile+"~", ourfile)
         raise
 
 
