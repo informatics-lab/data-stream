@@ -55,9 +55,8 @@ def getfile(ftp):
         ftp.rename(ourfile, ourfile+"~")
         # ftp.delete(ourfile)
     except:
+        ftp = connect()
         ftp.rename(ourfile+"~", ourfile)
-        raise
-
 
     return localfile
 
