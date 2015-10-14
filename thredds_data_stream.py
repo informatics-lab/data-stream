@@ -52,11 +52,10 @@ def getfile(ftp):
         localfile = os.path.join(os.getenv('DATA_DIR'), file)
         print "Downloading " + file + " to " + localfile
         ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
-        ftp.rename(ourfile, ourfile+"~")
-        # ftp.delete(ourfile)
+        ftp.delete(ourfile)
     except:
         ftp = connect()
-        ftp.rename(ourfile+"~", ourfile)
+        ftp.rename(ourfile, ourfile.rstrip("~"))
 
     return localfile
 
