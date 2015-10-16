@@ -54,25 +54,28 @@ def getfile(ftp):
         ftp.retrbinary('RETR ' + ourfile, open(localfile, 'wb').write)
         ftp.delete(ourfile)
     except:
-        ftp = connect()
+        ftp = connect() 
         ftp.rename(ourfile, ourfile.rstrip("~"))
 
     return localfile
 
 
 def getJobs(file):
-    info = manifest.runnames[file.split("_")[-2]]
-
-    newfiles = []
-    for variable in info["variables"]:
-        print "Ingesting " + variable
-        thisdata = iris.load_cube(file, variable)
-        stem, fname = os.path.split(file)
-        newname = file.split("_")[-2] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
-        iris.save(thisdata, os.path.join(stem, newname))
-        postJob(newname)
-    print "Removing file", file
-    os.remove(file)
+    try:
+        info = manifest.runnames[file.split("_")[-2]]
+        newfiles = []
+        for variable in info["variables"]:
+            print "Ingesting " + variable
+            thisdata = iris.load_cube(file, variable)
+            stem, fname = os.path.split(file)
+            newname = file.split("_")[-2] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
+            iris.save(thisdata, os.path.join(stem, newname))
+            postJob(newname)
+    except:
+        raise
+    finally:
+        print "Removing file", file
+        os.remove(file)
 
 
 def postJob(file):
