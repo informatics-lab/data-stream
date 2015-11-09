@@ -66,11 +66,14 @@ def getJobs(file):
         newfiles = []
         for variable in info["variables"]:
             print "Ingesting " + variable
-            thisdata = iris.load_cube(file, variable)
-            stem, fname = os.path.split(file)
-            newname = file.split("_")[-2] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
-            iris.save(thisdata, os.path.join(stem, newname))
-            postJob(newname)
+            try:
+                thisdata = iris.load_cube(file, variable)
+                stem, fname = os.path.split(file)
+                newname = file.split("_")[-2] + "_" + variable + "_" + fname.split("_")[0] + "_" + fname.split("_")[-1].replace("grib2", "nc")
+                iris.save(thisdata, os.path.join(stem, newname))
+                postJob(newname)
+            except iris.ConstraintMismatchError:
+                print variable + " not found in file " + file + ". continuing"
     except:
         raise
     finally:
